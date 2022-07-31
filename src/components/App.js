@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { db } from './firebase-config';
+
+
 var Percent=0.0;
 function App() {
   const [flagTable, setFlagTable] = useState(0);
@@ -8,7 +11,6 @@ function App() {
   const [val2, setVal2] = useState(0);
   const [flag, setFlag] = useState(0);
   var T = 0;
-
 
   const handleAttributeChange = (e, index) => {
     const { name, value } = e.target;
@@ -72,9 +74,9 @@ function App() {
   }
 
   return (
-    <div style={{}} className="mt-10 shaa brightness-105 bg-slate-100/25 rounded-3xl backdrop-blur-lg drop-shadow-2xl m-3 p-10 mx-10 xl:mx-64 text-xl flex justify-center font-medium	">
+    <div style={{}} className="m-3 mb-6 bathao mt-2 brightness-105 bg-slate-400/25 rounded-3xl backdrop-blur-lg drop-shadow-2xl p-10 mx-10 xl:mx-64 text-xl flex justify-center font-medium	">
       <div className="p-2">
-        <div className="text-7xl pb-5 text-center">Track your expenses</div>
+        <div className="text-7xl pb-5 text-center"><h1>Track your expenses</h1></div>
         <div className="">
           {Tasks.map((iterate, index) =>
             <div className="flex">
@@ -104,19 +106,19 @@ function App() {
                       <table class="table-auto border-separate border-spacing-2 font-normal text-center">
                         <thead>
                           <tr>
-                            <th className="font-normal border border-slate-700 px-2 rounded-lg bg-slate-400/75">Sl No.</th>
-                            <th className="font-normal border border-slate-700 px-24 rounded-lg bg-slate-400/75">Activity</th>
-                            <th className="font-normal border border-slate-700 px-3 rounded-lg bg-slate-400/75">Rupees</th>
-                            <th className="font-normal border border-slate-700 px-3 rounded-lg bg-slate-400/75">Percent Expense</th>
+                            <th className="font-normal px-2 rounded-lg bg-slate-400">Sl No.</th>
+                            <th className="font-normal px-24 rounded-lg bg-slate-400">Activity</th>
+                            <th className="font-normal px-3 rounded-lg bg-slate-400">Rupees</th>
+                            <th className="font-normal px-3 rounded-lg bg-slate-400">Percent Expense</th>
                           </tr>
                         </thead>
                         {Tasks.map((iterate, index) => 
                         <tbody>
                           <tr>
-                            <td className="border border-slate-700 rounded-lg">{index+1}</td>
-                            <td className="border border-slate-700 rounded-lg">{iterate.Tasks}</td>
-                            <td className="border border-slate-700 rounded-lg">{iterate.Exp}</td>
-                            <td className="border border-slate-700 rounded-lg">{calcPercent(iterate.Exp)}{Percent}%</td>
+                            <td className="rounded-lg bg-slate-400/50">{index+1}</td>
+                            <td className="rounded-lg bg-slate-400/50">{iterate.Tasks}</td>
+                            <td className="rounded-lg bg-slate-400/50">{iterate.Exp} ₹</td>
+                            <td className="rounded-lg bg-slate-400/50">{calcPercent(iterate.Exp)}{Percent}%</td>
                           </tr>
                         </tbody>)}
                       </table>
