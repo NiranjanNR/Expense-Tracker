@@ -1,66 +1,135 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { db } from './firebase-config';
+import { collection,getDocs,addDoc,deleteDoc,updateDoc,doc } from 'firebase/firestore';
+import { calculateNewValue } from '@testing-library/user-event/dist/utils';
 
-
+var fc=0,valType=0;
 var Percent=0.0;
 function App() {
+
+  //Database
+  const listCollectionRef = collection(db , "List");
+  const [value1, setValue1] = useState("");
+  const [value2, setValue2] = useState(0.0);
+
+  const updateUser = async (id, Para) => {
+    const userDoc = doc(db, "List", id);
+    
+    if(valType){
+     
+      const newFields = { Exp: Para };
+      await updateDoc(userDoc, newFields);
+    }
+    else{
+      const newFields2 = { Tasks: Para };
+      await updateDoc(userDoc, newFields2);
+      
+    }
+    
+  };
+  const createTask = async () => {
+    await addDoc(listCollectionRef, { Tasks:value1 ,Exp:value2})
+  }
+
+  const deleteTask = async (index,id) =>{
+   
+    const userDoc =doc(db, "List", id);
+    await deleteDoc(userDoc);
+  }
+
+  const getList = async () =>{
+   
+    const dat = await getDocs(listCollectionRef);
+    setTasks(dat.docs.map((doc)=>({...doc.data(),id:doc.id})));
+    
+  }
+  useEffect(() =>{
+    const getList = async () =>{
+      const dat = await getDocs(listCollectionRef);
+      setTasks(dat.docs.map((doc)=>({...doc.data(),id:doc.id})));
+      
+    }
+    getList();
+  },[])
+  
   const [flagTable, setFlagTable] = useState(0);
   const [Tasks, setTasks] = useState([{}]);
   const [Total, setTotal] = useState(0.0);
-  const [val1, setVal1] = useState(0);
-  const [val2, setVal2] = useState(0);
   const [flag, setFlag] = useState(0);
   var T = 0;
+  var m=Tasks.length;
 
-  const handleAttributeChange = (e, index) => {
+  const handleAttributeChange = (e, index,id) => {
     const { name, value } = e.target;
     const list = [...Tasks];
     list[index][name] = value;
+    if(name==="Tasks"){
+      setValue1(value);
+      valType=0;
+        }
+    else{
+      setValue2(value);
+      valType=1;
+    }
     setTasks(list);
-    handleCalculate();
-    if (name === "Tasks") {
-      setVal1(1);
-    }
-    if (name === "Exp") {
-      setVal2(1);
-    }
     setFlag(0);
     setFlagTable(0);
+    updateUser(id,value);
   }
 
   const handleAddField = (e) => {
-    if (val1 !== 0 && val2 !== 0) {
-      setTasks([...Tasks, { Tasks: "", Exp: "" }]);
-      setVal1(0);
-      setVal2(0);
-      setFlag(0);
-    }
+    
     if (Tasks.length === 0) {
       setTasks([...Tasks, { Tasks: "", Exp: "" }]);
-      setVal1(0);
-      setVal2(0);
       setFlag(0);
+      if(fc===0){
+        if(value1!=="" && value2!==""){
+          createTask();
+        }
+      }
+      else{
+        fc=0;
+      }
+    }
+    if (Tasks[m-1].Tasks!=="" && Tasks[m-1].Exp!=="") {
+      setTasks([...Tasks, { Tasks: "", Exp: "" }]);
+      setFlag(0);
+      if(fc===0){
+        if(value1!=="" && value2!==""){
+          createTask();
+        }
+      }
+      else{
+        fc=0;
+      }
     }
   }
 
-  const handleDeleteField = (index) => {
+  const handleDeleteField = (index,id) => {
     const sm = [...Tasks];
     sm.splice(index, 1);
     setTasks(sm);
-    handleCalculate();
     setFlag(0);
     setFlagTable(0);
+    deleteTask(index,id)
   }
 
   const handleCalculate = () => {
-    if (val1 !== 0 && val2 !== 0) {
+    if (Tasks[m-1].Tasks!=="" && Tasks[m-1].Exp!=="") {
       Tasks.map(it => {
         T = T + parseFloat(it.Exp)
         setTotal(T);
         setFlag(1);
       });
       T = 0;
+      if(value1!=="" && value2!==""){
+        createTask();
+      }
+      fc=1;
     }
+    getList();
+    setValue1("");
+    setValue2("");
   }
 
   const handleShowStats = () => {
@@ -81,10 +150,10 @@ function App() {
           {Tasks.map((iterate, index) =>
             <div className="flex">
               <div className="py-3">
-                <div className="md:flex"><p className="p-1 pb-3">Enter on what you spent your money on:</p><input value={iterate.Tasks} name="Tasks" type="text" className="bg-slate-400/50 placeholder:text-slate-600 rounded-lg mt-1 mb-2 md:ml-16 ml-3 px-3" placeholder="Enter task" onChange={(e) => handleAttributeChange(e, index)} /></div>
-                <div className="md:flex"><p className="p-1">How much money did you spend on it (in Rs):</p><input value={iterate.Exp} name="Exp" type="number" className="bg-slate-400/50 placeholder:text-slate-600 rounded-lg mt-1 ml-3 px-3" placeholder="Enter amount" onChange={(e) => handleAttributeChange(e, index)} /></div>
+                <div className="md:flex"><p className="p-1 pb-3">Enter on what you spent your money on:</p><input value={iterate.Tasks} name="Tasks" type="text" className="bg-slate-400/50 placeholder:text-slate-600 rounded-lg mt-1 mb-2 md:ml-16 ml-3 px-3" placeholder="Enter task" onChange={(e) => handleAttributeChange(e, index,iterate.id)} /></div>
+                <div className="md:flex"><p className="p-1">How much money did you spend on it (in Rs):</p><input value={iterate.Exp} name="Exp" type="number" className="bg-slate-400/50 placeholder:text-slate-600 rounded-lg mt-1 ml-3 px-3" placeholder="Enter amount" onChange={(e) => handleAttributeChange(e, index,iterate.id)} /></div>
               </div>
-              <button className="font-normal text-xl rounded-3xl backdrop-blur-lg hover:backdrop-blur-lg bg-slate-400/75 hover:bg-slate-500/50 px-4 py-1 my-8 ml-4 " onClick={() => handleDeleteField(index)}>Delete</button>
+              <button className="font-normal text-xl rounded-3xl backdrop-blur-lg hover:backdrop-blur-lg bg-slate-400/75 hover:bg-slate-500/50 px-4 py-1 my-8 ml-4 " onClick={() => handleDeleteField(index,iterate.id)}>Delete</button>
             </div>
           )}
         </div>
